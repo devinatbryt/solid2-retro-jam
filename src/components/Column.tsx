@@ -7,7 +7,7 @@ import CardComp from "./Card";
 type Column = "went-well" | "didnt-go-well" | "action-items";
 
 function Form() {
-  return <form></form>;
+  return <form method="post"></form>;
 }
 
 export function Column(props: { type: Column; cards: Card[] }) {
