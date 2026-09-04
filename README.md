@@ -7,6 +7,23 @@ You are building a live retro board. What is already here is the boring part —
 a fan-out bus, chaos knobs, identity, and a playground showing each new
 primitive once. The board itself is yours.
 
+## House rule: no AI writing code
+
+This is a **human** pair-programming exercise. Assistants are for **research
+only** — looking things up, explaining a primitive, decoding a diagnostic. Not
+for writing, completing, or refactoring code. If an assistant writes the board,
+nobody learns Solid 2 and there is nothing to compare at the end.
+
+Before you start: **turn off inline AI completions** — Copilot, Cursor
+tab-complete, and friends. Ghost-text autocomplete is the one everyone forgets,
+and a pair with it switched on is effectively pairing with a language model.
+
+`AGENTS.md` states this in the form an assistant will actually read.
+
+Research is genuinely encouraged, though — see the next section for why.
+
+---
+
 | File | What it is |
 |---|---|
 | **`SPEC.md`** | What to build. Behaviour only — the primitives are your call. |
@@ -81,8 +98,8 @@ git switch -c pair-a   # or pair-b
 
 ## Solid 2 is not Solid 1, and it is very much not React
 
-The single biggest risk to this session is that your editor's AI assistant
-confidently writes Solid 1.x. It will. `createResource`, `batch`, `<Suspense>`,
+This is why research is worth doing and why generated code is worth banning: if
+you ask an assistant to *write* Solid, it will confidently write Solid 1.x. `createResource`, `batch`, `<Suspense>`,
 `<ErrorBoundary>`, `<Index>`, `produce`, `onMount`, `mergeProps`, `splitProps`,
 `classList`, `use:` directives and single-argument `createEffect` are all gone
 or renamed.
