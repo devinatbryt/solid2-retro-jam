@@ -62,7 +62,7 @@ For what to build, see `SPEC.md`.
 | Primitive | Reach for it when |
 |---|---|
 | `query(fn, name)` | A cached, keyed read. Revalidated automatically after actions settle. |
-| `liveQuery(fn, name)` | A read that keeps yielding. One shared connection per `name + args`; `.status()` is a reactive read of the connection. The function must be an **async generator** that re-yields current state on every invocation. |
+| `liveQuery(fn, name)` | A read that keeps yielding. One shared connection per `name + args`; `.status()` is a reactive read of the connection. The function must be an **async generator** that re-yields current state on every invocation. **Read it through a `createMemo`** — called directly in JSX it silently renders nothing and never updates. |
 | `action(fn, name)` | A write. Bindable straight to `<form action={...}>`, so it works before hydration. `.with(...)`, `.onSubmit`, `.onSettled`. |
 | `useAction` | You want to call an action from an event handler instead of a form. |
 | `useSubmissions` | You want to render in-flight submissions — a natural "saving…" affordance. |
