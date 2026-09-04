@@ -1,10 +1,9 @@
 // REFERENCE SOLUTION — the board UI.
-import { revalidate, useAction, useSubmissions } from '@solidjs/router';
+import { revalidate, useAction } from '@solidjs/router';
 import {
   For,
   Show,
   action,
-  createEffect,
   createMemo,
   createOptimisticStore,
   createSignal,
@@ -151,13 +150,6 @@ function ColumnView(props: {
   onVote: (cardId: string) => void;
   onError: (message: string | null) => void;
 }) {
-  // Renders every add currently in flight for THIS column, so a slow write
-  // shows up as a real row instead of a spinner somewhere else.
-  const pendingAdds = useSubmissions(
-    addCard,
-    (input) => input[0] === props.column,
-  );
-
   return (
     <section
       class={[
@@ -188,20 +180,7 @@ function ColumnView(props: {
         )}
       </For>
 
-      {/* In-flight adds, rendered from the router's submission list. */}
-      <For each={pendingAdds}>
-        {(submission) => (
-          // Submission has no `pending` flag: in flight means no result yet
-          // and no error.
-          <Show when={submission.result === undefined && !submission.error}>
-            <article class="is-optimistic rounded-lg border border-line bg-surface p-3 text-sm">
-              {String((submission.input[1] as FormData)?.get('text') ?? '')}
-            </article>
-          </Show>
-        )}
-      </For>
-
-      <AddCardForm column={props.column} />
+      <AddCardForm column={props.column} onError={props.onError} />
     </section>
   );
 }
@@ -305,53 +284,76 @@ function CardView(props: {
   );
 }
 
-function AddCardForm(props: { column: Column }) {
+function AddCardForm(props: {
+  column: Column;
+  onError: (message: string | null) => void;
+}) {
+  const submit = useAction(addCard);
+  const [text, setText] = createSignal('');
+  // The text currently in flight, so this column can show its own pending row.
+  const [inFlight, setInFlight] = createSignal<string | null>(null);
   let input: HTMLInputElement | undefined;
 
-  const submissions = useSubmissions(
-    addCard,
-    (submitted) => submitted[0] === props.column,
-  );
-
-  // Clear the field once the submission has actually been REGISTERED, not in
-  // the submit handler.
-  //
-  // Clearing in onSubmit (even via queueMicrotask) races the router's own
-  // FormData capture: the input goes empty before the action reads it and the
-  // server receives a blank card. Watching the submissions list means the
-  // arguments are already captured by the time we touch the DOM.
-  createEffect(
-    () => submissions.length,
-    () => {
-      if (!input) return;
-      input.value = '';
-      input.focus();
-    },
-    { defer: true },
-  );
-
   return (
-    <form
-      // .with() pre-binds the column, so the action still works as a plain
-      // form post before hydration.
-      action={addCard.with(props.column)}
-      method="post"
-      class="flex gap-2"
-    >
-      <input
-        ref={(element) => (input = element)}
-        name="text"
-        required
-        maxlength="280"
-        placeholder="Add a card…"
-        class="min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 py-2 text-sm"
-      />
-      <button
-        type="submit"
-        class="rounded-lg bg-accent px-3 py-2 text-sm font-semibold text-surface"
+    <>
+      <Show when={inFlight()}>
+        {(pending) => (
+          <article class="is-optimistic rounded-lg border border-line bg-surface p-3 text-sm">
+            {pending()}
+          </article>
+        )}
+      </Show>
+
+      <form
+        // The no-JS path: without hydration this posts to the action directly,
+        // with the column pre-bound by .with().
+        action={addCard.with(props.column)}
+        method="post"
+        class="flex gap-2"
+        onSubmit={(event) => {
+          // With JS, take the submission over so ordering is ours.
+          //
+          // The tempting version of this — leave the form declarative and clear
+          // the input in onSubmit — does not work: the clear races the router's
+          // own FormData capture and the server receives a blank card. Nor can
+          // this be driven off useSubmissions: reading its length here fired for
+          // every action on the board, so all three columns cleared and the last
+          // one stole focus. Building FormData by hand removes both races.
+          event.preventDefault();
+
+          const value = text().trim();
+          if (!value) return;
+
+          const payload = new FormData();
+          payload.set('text', value);
+
+          setText('');
+          setInFlight(value);
+          props.onError(null);
+          input?.focus();
+
+          void submit(props.column, payload)
+            .catch((cause: unknown) => props.onError(String(cause)))
+            .finally(() => setInFlight(null));
+        }}
       >
-        Add
-      </button>
-    </form>
+        <input
+          ref={(element) => (input = element)}
+          name="text"
+          required
+          maxlength="280"
+          placeholder="Add a card…"
+          class="min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 py-2 text-sm"
+          value={text()}
+          onInput={(event) => setText(event.currentTarget.value)}
+        />
+        <button
+          type="submit"
+          class="rounded-lg bg-accent px-3 py-2 text-sm font-semibold text-surface"
+        >
+          Add
+        </button>
+      </form>
+    </>
   );
 }
