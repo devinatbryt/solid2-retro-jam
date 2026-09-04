@@ -112,6 +112,11 @@ over anything the model remembers.
 
 These are real, we hit them, and none of them are your bug:
 
+- **A live query must be read through a `createMemo`.** `createMemo(() => liveThing())`
+  subscribes and updates; calling `liveThing()` directly in JSX — or from inside
+  an optimistic store's compute — renders nothing and never updates, silently,
+  with no error and no warning. This is the single easiest way to lose twenty
+  minutes in this repo.
 - **A `liveQuery` channel does not connect on a hard SSR page load.** Hydration
   adopts the server-serialised first value and nothing in the browser ever
   pulls, so `status()` sits at `"connecting"` forever. Client-side navigation
