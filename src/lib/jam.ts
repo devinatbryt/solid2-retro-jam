@@ -12,6 +12,7 @@ import { getRequestEvent } from '@solidjs/web';
 import { chaosBus, getChaos, setChaos, type ChaosSettings } from '../server/chaos';
 import { getIdentity } from '../server/identity';
 import { isLiveConnection } from '../server/live';
+import { readCards, addNewCard as _addNewCard, editCard as _editCard, removeCard as _removeCard, subscribeToCards, type AddNewCardInput } from '../server/card';
 
 /**
  * Who am I? Minted on first contact, then stable for this browser.
@@ -62,9 +63,23 @@ export const updateChaos = action(async (next: Partial<ChaosSettings>) => {
   return setChaos(next);
 }, 'update-chaos');
 
-export const getCards = query(async () => {
+export const getCards = liveQuery(async function* () {
   'use server';
-  return []
-}, 'get-cards')
+  if (!isLiveConnection()) {
+    yield readCards();
+    return;
+  }
+  const signal = getRequestEvent()?.request.signal;
+  for await (const cards of subscribeToCards(signal)) {
+    yield cards
+  }
+}, 'get-cards');
+
+export const addNewCard = action(async (card: AddNewCardInput) => {
+  'use server';
+  return _addNewCard(card)
+}, 'add-new-card');
+
+
 
 export type { ChaosSettings };

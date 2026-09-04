@@ -1,6 +1,7 @@
 import "server-only"
 import { createBus } from "./bus";
 import { chaosRead, chaosWrite } from "./chaos";
+import { getIdentity } from "./identity";
 
 export type Column = 'went-well' | 'didnt-go-well' | 'action-items';
 
@@ -31,21 +32,42 @@ export async function readCards() {
     return getCurrentCards()
 }
 
-export async function addNewCard(card:Card) {
-    await chaosWrite('Adding Card')
+export type AddNewCardInput = Pick<Card, "text" | "column">
+
+export async function addNewCard(card: AddNewCardInput) {
+    const identity = await getIdentity();
+    await chaosWrite('Adding Card');
     const prev = getCurrentCards()
-    const next = [...prev, card].map(card => ({...card}))
+    const lastCardId = prev[0] ? parseInt(prev[0].id) + 1 : 0;
+    const currentTime = new Date().getDate();
+    const newCard: Card = {
+        ...card,
+        id: `${lastCardId}`,
+        authorId: identity.id,
+        authorHue: identity.hue,
+        authorName: identity.name,
+        votes: [],
+        createdAt: currentTime,
+        updatedAt: currentTime
+    }
+    const next = [...prev, newCard].map(card => ({...card}))
     cardsBus.publish(next)
 
     return next
 }
 
-export async function editCard(card:Card) {
+export type EditCardInput = Partial<Pick<Card, "text" | "column" | "votes">> & Pick<Card, "id">
+
+export async function editCard(card:EditCardInput) {
     await chaosWrite('Editing Card')
     const prev = getCurrentCards()
     const next = [...prev].map(c => {
         if ( c.id === card.id) {
-            return card
+            return {
+                ...c,
+                ...card,
+                updatedAt: new Date().getDate()
+            }
         }
         return {...c}
     })
