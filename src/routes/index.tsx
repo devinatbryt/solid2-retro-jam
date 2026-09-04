@@ -21,7 +21,7 @@ export const route = {
   },
 } satisfies RouteDefinition;
 
-export default function Board() {
+export default function RetroBoard() {
   // A server function read. `getMe` is a query(): cached per key, revalidated
   // by the router after an action settles. It mints a nickname on first visit.
   const me = createMemo(() => getMe());
@@ -50,34 +50,23 @@ export default function Board() {
         </div>
       </header>
 
-      <section class="rounded-xl border border-dashed border-line p-10 text-center">
-        <h2 class="mb-2 font-semibold">Nothing here yet — that is the point.</h2>
-        <p class="mx-auto mb-6 max-w-md text-sm text-muted">
-          Build the board described in <code class="text-white">SPEC.md</code>.
-          Start by deciding what a card is and how the server hands you a list
-          of them; the shape of every primitive you will need is on the
-          playground.
-        </p>
-        <div class="flex flex-wrap justify-center gap-2 text-sm">
-          <a
-            href="/playground"
-            class="rounded-lg bg-accent px-4 py-2 font-semibold text-surface"
-          >
-            Open the playground
-          </a>
-          <a
-            href="/users"
-            class="rounded-lg border border-line px-4 py-2 font-medium text-muted hover:text-white"
-          >
-            Template's own server-function example
-          </a>
-        </div>
-      </section>
-
-      <p class="mt-8 text-center text-xs text-muted">
-        Open the Chaos Panel (bottom right) and raise latency before you trust
-        anything you build. At 0ms every async state in this app is invisible.
-      </p>
+      <div class='grid md:grid-cols-3 gap-4'>
+        <section class="flex flex-col gap-3 rounded-xl border border-line bg-surface-2 p-4">
+          <h2 class="text-sm font-semibold tracking-wide text-muted uppercase">Went Well</h2>
+          <article class="rounded-lg border border-line bg-surface p-3 text-sm">
+          </article>
+        </section>
+        <section class="flex flex-col gap-3 rounded-xl border border-line bg-surface-2 p-4">
+          <h2 class="text-sm font-semibold tracking-wide text-muted uppercase">Didn't Go Well</h2>
+          <article class="rounded-lg border border-line bg-surface p-3 text-sm">
+          </article>
+        </section>
+        <section class="flex flex-col gap-3 rounded-xl border border-line bg-surface-2 p-4">
+          <h2 class="text-sm font-semibold tracking-wide text-muted uppercase">Action Items</h2>
+          <article class="rounded-lg border border-line bg-surface p-3 text-sm">
+          </article>
+        </section>
+      </div>
     </main>
   );
 }

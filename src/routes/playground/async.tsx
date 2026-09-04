@@ -19,7 +19,7 @@ export default function AsyncPlayground() {
 
   // Reading echoed() is "not ready" at first. That is not an error state —
   // it propagates to the nearest <Loading> boundary.
-  const echoed = createMemo(() => getEcho(text()), { name: 'echo' });
+  const echoed = createMemo(() => getEcho(text()), { name: "echo" });
 
   return (
     <section class="space-y-6">

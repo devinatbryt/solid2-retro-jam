@@ -2,7 +2,7 @@ import { Title } from '@solidjs/meta';
 import { revalidate, useAction, type RouteDefinition } from '@solidjs/router';
 import { For, Show, createMemo, createSignal, onSettled } from 'solid-js';
 
-import { liveTicker, liveWatchers, nudge } from '../../lib/playground';
+import { liveTicker, nudge } from '../../lib/playground';
 
 // ---------------------------------------------------------------------------
 // LIVE READS
@@ -24,15 +24,15 @@ import { liveTicker, liveWatchers, nudge } from '../../lib/playground';
 export const route = {
   preload: () => {
     void liveTicker();
-    void liveWatchers();
   },
 } satisfies RouteDefinition;
 
 export default function LivePlayground() {
   // One shared connection per (name + args) key across every consumer in the
-  // app — mounting this memo twice does not open two streams.
-  const ticker = createMemo(() => liveTicker(), { name: 'live-ticker' });
-  const watchers = createMemo(() => liveWatchers(), { name: 'live-watchers' });
+  // app — mounting this memo twice does not open two streams. Count and state
+  // ride the SAME channel: a second key would be a second socket, and with two
+  // windows open there are not that many sockets to spend (see lib/playground).
+  const feed = createMemo(() => liveTicker(), { name: 'live-ticker' });
 
   // On a HARD page load the route preload ran on the server, so nothing in the
   // browser has pulled yet — hydration adopts the serialised first value and
@@ -41,7 +41,6 @@ export default function LivePlayground() {
   // in the browser and warms the channel itself.)
   onSettled(() => {
     revalidate(liveTicker.key);
-    revalidate(liveWatchers.key);
   });
 
   const send = useAction(nudge);
@@ -55,7 +54,7 @@ export default function LivePlayground() {
       <div class="rounded-xl border border-line bg-surface-2 p-6">
         <div class="mb-4 flex items-baseline justify-between">
           <span class="text-sm text-muted">Shared count</span>
-          <span class="font-mono text-4xl tabular-nums">{ticker().count}</span>
+          <span class="font-mono text-4xl tabular-nums">{feed().state.count}</span>
         </div>
 
         <div class="mb-4 flex items-center gap-3 text-xs text-muted">
@@ -63,7 +62,7 @@ export default function LivePlayground() {
             stream: <span class="text-white">{liveTicker.status()}</span>
           </span>
           <span>
-            open streams: <span class="text-white">{watchers()}</span>
+            open streams: <span class="text-white">{feed().watchers}</span>
           </span>
         </div>
 
@@ -99,7 +98,7 @@ export default function LivePlayground() {
             and an index ACCESSOR. With keyed={false} it is the other way
             round. <Index> no longer exists. */}
         <For
-          each={ticker().nudges}
+          each={feed().state.nudges}
           fallback={<p class="text-sm text-muted">Nothing yet.</p>}
         >
           {(item, index) => (

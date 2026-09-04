@@ -39,6 +39,12 @@ declare module "virtual:file-routes" {
       $$route: FileRouteEagerRef<typeof import("./src/routes/[...404]")>;
     },
     {
+      path: "/playground";
+      page: true;
+      $component: FileRouteLazyRef<typeof import("./src/routes/playground")>;
+      $$route?: undefined;
+    },
+    {
       path: "/users";
       page: true;
       $component: FileRouteLazyRef<typeof import("./src/routes/users")>;
@@ -52,27 +58,15 @@ declare module "virtual:file-routes" {
       $$route?: undefined;
     },
     {
-      path: "/users/:id";
-      page: true;
-      $component: FileRouteLazyRef<typeof import("./src/routes/users/[id]")>;
-      $$route: FileRouteEagerRef<typeof import("./src/routes/users/[id]")>;
-    },
-    {
-      path: "/playground/";
-      page: true;
-      $component: FileRouteLazyRef<typeof import("./src/routes/playground/index")>;
-      $$route?: undefined;
-    },
-    {
       path: "/playground/async";
       page: true;
       $component: FileRouteLazyRef<typeof import("./src/routes/playground/async")>;
       $$route?: undefined;
     },
     {
-      path: "/playground/optimistic";
+      path: "/playground/";
       page: true;
-      $component: FileRouteLazyRef<typeof import("./src/routes/playground/optimistic")>;
+      $component: FileRouteLazyRef<typeof import("./src/routes/playground/index")>;
       $$route?: undefined;
     },
     {
@@ -82,10 +76,16 @@ declare module "virtual:file-routes" {
       $$route: FileRouteEagerRef<typeof import("./src/routes/playground/live")>;
     },
     {
-      path: "/playground";
+      path: "/playground/optimistic";
       page: true;
-      $component: FileRouteLazyRef<typeof import("./src/routes/playground")>;
+      $component: FileRouteLazyRef<typeof import("./src/routes/playground/optimistic")>;
       $$route?: undefined;
+    },
+    {
+      path: "/users/:id";
+      page: true;
+      $component: FileRouteLazyRef<typeof import("./src/routes/users/[id]")>;
+      $$route: FileRouteEagerRef<typeof import("./src/routes/users/[id]")>;
     },
     {
       path: "/";

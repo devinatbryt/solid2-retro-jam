@@ -62,4 +62,9 @@ export const updateChaos = action(async (next: Partial<ChaosSettings>) => {
   return setChaos(next);
 }, 'update-chaos');
 
+export const getCards = query(async () => {
+  'use server';
+  return []
+}, 'get-cards')
+
 export type { ChaosSettings };
