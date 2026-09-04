@@ -1,8 +1,12 @@
-import { Title } from '@solidjs/meta';
-import type { RouteDefinition } from '@solidjs/router';
-import { createMemo } from 'solid-js';
+import { Title } from "@solidjs/meta";
+import type { RouteDefinition } from "@solidjs/router";
+import { createMemo } from "solid-js";
 
-import { getMe } from '../lib/jam';
+import { getMe } from "../lib/jam";
+import { getActionItems } from "../lib/actionItems";
+import { getWentWell } from "../lib/wentWell";
+import { getDidntGoWell } from "../lib/didntGoWell";
+import { Column } from "../components/Column";
 
 // ===========================================================================
 //  THIS IS YOUR STARTING POINT.
@@ -18,6 +22,9 @@ import { getMe } from '../lib/jam';
 export const route = {
   preload: () => {
     void getMe();
+    void getActionItems();
+    void getWentWell();
+    void getDidntGoWell();
   },
 } satisfies RouteDefinition;
 
@@ -25,6 +32,9 @@ export default function Board() {
   // A server function read. `getMe` is a query(): cached per key, revalidated
   // by the router after an action settles. It mints a nickname on first visit.
   const me = createMemo(() => getMe());
+  const actionItems = createMemo(() => getActionItems());
+  const wentWell = createMemo(() => getWentWell());
+  const didntGoWell = createMemo(() => getDidntGoWell());
 
   return (
     <main class="mx-auto max-w-5xl p-6 pb-32">
@@ -40,7 +50,7 @@ export default function Board() {
 
         <div
           class="flex items-center gap-2 rounded-full border border-line bg-surface-2 px-3 py-1.5 text-sm"
-          style={{ '--who': `hsl(${me().hue} 70% 60%)` }}
+          style={{ "--who": `hsl(${me().hue} 70% 60%)` }}
         >
           <span
             class="inline-block size-2.5 rounded-full"
@@ -51,7 +61,12 @@ export default function Board() {
       </header>
 
       <section class="rounded-xl border border-dashed border-line p-10 text-center">
-        <h2 class="mb-2 font-semibold">Nothing here yet — that is the point.</h2>
+        <div class="grid grid-cols-3">
+          <Column type="went-well" cards={wentWell()} />
+          <Column type="didnt-go-well" cards={didntGoWell()} />
+          <Column type="action-items" cards={actionItems()} />
+        </div>
+        {/* <h2 class="mb-2 font-semibold">Nothing here yet — that is the point.</h2>
         <p class="mx-auto mb-6 max-w-md text-sm text-muted">
           Build the board described in <code class="text-white">SPEC.md</code>.
           Start by deciding what a card is and how the server hands you a list
@@ -71,7 +86,7 @@ export default function Board() {
           >
             Template's own server-function example
           </a>
-        </div>
+        </div> */}
       </section>
 
       <p class="mt-8 text-center text-xs text-muted">

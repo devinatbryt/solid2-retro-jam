@@ -2,17 +2,29 @@
 // could reach the client bundle fails the build (the `server-only` marker
 // comes typed via @solidjs/vite-plugin/boundary-modules). Swap the Map for a
 // real database client — this file is the only place that knows.
-import 'server-only';
+import "server-only";
 
 export interface User {
   name: string;
   title: string;
 }
 
+export interface Card {
+  // id: string;
+  //   column: Column;
+  text: string;
+  authorId: string; // from getMe() // id: 1, name: "Ada Lovelace", hue: 200
+  authorName: string;
+  authorHue: number;
+  votes: string[]; // authorIds; one vote per person, toggleable
+  createdAt: number;
+  updatedAt: number;
+}
+
 const users = new Map<string, User>([
-  ['1', { name: 'Ada Lovelace', title: 'Wrote the first program' }],
-  ['2', { name: 'Grace Hopper', title: 'Invented the compiler' }],
-  ['3', { name: 'Margaret Hamilton', title: 'Took Apollo to the moon' }],
+  ["1", { name: "Ada Lovelace", title: "Wrote the first program" }],
+  ["2", { name: "Grace Hopper", title: "Invented the compiler" }],
+  ["3", { name: "Margaret Hamilton", title: "Took Apollo to the moon" }],
 ]);
 
 export function listUsers() {
@@ -26,4 +38,147 @@ export function findUser(id: string) {
 export function updateUser(id: string, data: Partial<User>) {
   const user = users.get(id);
   if (user) users.set(id, { ...user, ...data });
+}
+
+const didntGoWell = new Map<string, Card>([
+  [
+    "1",
+    {
+      text: "sloppy",
+      authorId: "1",
+      authorName: "Ada Lovelace",
+      authorHue: 200,
+      votes: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    },
+  ],
+  [
+    "2",
+    {
+      text: "tdd is no fun",
+      authorId: "2",
+      authorName: "Grace Hopper",
+      authorHue: 100,
+      votes: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    },
+  ],
+  [
+    "3",
+    {
+      text: "Improve documentation, just kidding... imperfection.",
+      authorId: "3",
+      authorName: "Margaret Hamilton",
+      authorHue: 300,
+      votes: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    },
+  ],
+]);
+
+const wentWell = new Map<string, Card>([
+  [
+    "1",
+    {
+      text: "the codebase wins",
+      authorId: "1",
+      authorName: "Ada Lovelace",
+      authorHue: 200,
+      votes: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    },
+  ],
+  [
+    "2",
+    {
+      text: "Add unit tests never. all good!",
+      authorId: "2",
+      authorName: "Grace Hopper",
+      authorHue: 100,
+      votes: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    },
+  ],
+  [
+    "3",
+    {
+      text: "Improve documentation, just kidding... perfection.",
+      authorId: "3",
+      authorName: "Margaret Hamilton",
+      authorHue: 300,
+      votes: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    },
+  ],
+]);
+
+const actionItems = new Map<string, Card>([
+  [
+    "1",
+    {
+      text: "Refactor the codebase",
+      authorId: "1",
+      authorName: "Ada Lovelace",
+      authorHue: 200,
+      votes: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    },
+  ],
+  [
+    "2",
+    {
+      text: "Add unit tests",
+      authorId: "2",
+      authorName: "Grace Hopper",
+      authorHue: 100,
+      votes: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    },
+  ],
+  [
+    "3",
+    {
+      text: "Improve documentation",
+      authorId: "3",
+      authorName: "Margaret Hamilton",
+      authorHue: 300,
+      votes: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    },
+  ],
+]);
+
+export function listActionItems() {
+  return Array.from(actionItems, ([id, card]) => ({ id, ...card }));
+}
+
+export function listWentWell() {
+  return Array.from(wentWell, ([id, card]) => ({ id, ...card }));
+}
+
+export function listDidntGoWell() {
+  return Array.from(didntGoWell, ([id, card]) => ({ id, ...card }));
+}
+
+// { id: authorId, name: authorName, hue: authorHue, text, votes: [] } how it is
+// { authorId: id, authorName: name, authorHue: hue, text, votes: [] } how it must be
+type Data = {
+  text: string;
+  id: string;
+  name: string;
+  hue: number;
+  votes: string[];
+};
+
+export function postActionItem(data: Data) {
+  const id = (actionItems.size + 1).toString();
 }

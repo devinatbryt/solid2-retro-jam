@@ -39,29 +39,16 @@ declare module "virtual:file-routes" {
       $$route: FileRouteEagerRef<typeof import("./src/routes/[...404]")>;
     },
     {
+      path: "/playground";
+      page: true;
+      $component: FileRouteLazyRef<typeof import("./src/routes/playground")>;
+      $$route?: undefined;
+    },
+    {
       path: "/users";
       page: true;
       $component: FileRouteLazyRef<typeof import("./src/routes/users")>;
       $$route: FileRouteEagerRef<typeof import("./src/routes/users")>;
-    },
-    {
-      path: "/api/users";
-      page: false;
-      $GET: FileRouteLazyRef<typeof import("./src/routes/api/users")>;
-      $HEAD: FileRouteLazyRef<typeof import("./src/routes/api/users")>;
-      $$route?: undefined;
-    },
-    {
-      path: "/users/:id";
-      page: true;
-      $component: FileRouteLazyRef<typeof import("./src/routes/users/[id]")>;
-      $$route: FileRouteEagerRef<typeof import("./src/routes/users/[id]")>;
-    },
-    {
-      path: "/playground/";
-      page: true;
-      $component: FileRouteLazyRef<typeof import("./src/routes/playground/index")>;
-      $$route?: undefined;
     },
     {
       path: "/playground/async";
@@ -70,9 +57,9 @@ declare module "virtual:file-routes" {
       $$route?: undefined;
     },
     {
-      path: "/playground/optimistic";
+      path: "/playground/";
       page: true;
-      $component: FileRouteLazyRef<typeof import("./src/routes/playground/optimistic")>;
+      $component: FileRouteLazyRef<typeof import("./src/routes/playground/index")>;
       $$route?: undefined;
     },
     {
@@ -82,9 +69,36 @@ declare module "virtual:file-routes" {
       $$route: FileRouteEagerRef<typeof import("./src/routes/playground/live")>;
     },
     {
-      path: "/playground";
+      path: "/playground/optimistic";
       page: true;
-      $component: FileRouteLazyRef<typeof import("./src/routes/playground")>;
+      $component: FileRouteLazyRef<typeof import("./src/routes/playground/optimistic")>;
+      $$route?: undefined;
+    },
+    {
+      path: "/users/:id";
+      page: true;
+      $component: FileRouteLazyRef<typeof import("./src/routes/users/[id]")>;
+      $$route: FileRouteEagerRef<typeof import("./src/routes/users/[id]")>;
+    },
+    {
+      path: "/api/users";
+      page: false;
+      $GET: FileRouteLazyRef<typeof import("./src/routes/api/users")>;
+      $HEAD: FileRouteLazyRef<typeof import("./src/routes/api/users")>;
+      $$route?: undefined;
+    },
+    {
+      path: "/api/wentWell";
+      page: false;
+      $GET: FileRouteLazyRef<typeof import("./src/routes/api/wentWell")>;
+      $HEAD: FileRouteLazyRef<typeof import("./src/routes/api/wentWell")>;
+      $$route?: undefined;
+    },
+    {
+      path: "/api/didntGoWell";
+      page: false;
+      $GET: FileRouteLazyRef<typeof import("./src/routes/api/didntGoWell")>;
+      $HEAD: FileRouteLazyRef<typeof import("./src/routes/api/didntGoWell")>;
       $$route?: undefined;
     },
     {
@@ -92,6 +106,14 @@ declare module "virtual:file-routes" {
       page: true;
       $component: FileRouteLazyRef<typeof import("./src/routes/index")>;
       $$route: FileRouteEagerRef<typeof import("./src/routes/index")>;
+    },
+    {
+      path: "/api/actionItems";
+      page: false;
+      $GET: FileRouteLazyRef<typeof import("./src/routes/api/actionItems")>;
+      $POST: FileRouteLazyRef<typeof import("./src/routes/api/actionItems")>;
+      $HEAD: FileRouteLazyRef<typeof import("./src/routes/api/actionItems")>;
+      $$route?: undefined;
     }
   ];
   export default routes;
