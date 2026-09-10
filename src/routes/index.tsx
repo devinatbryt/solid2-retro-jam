@@ -3,9 +3,7 @@ import type { RouteDefinition } from "@solidjs/router";
 import { createMemo } from "solid-js";
 
 import { getMe } from "../lib/jam";
-import { getActionItems } from "../lib/actionItems";
-import { getWentWell } from "../lib/wentWell";
-import { getDidntGoWell } from "../lib/didntGoWell";
+import { getCards } from "../lib/cards";
 import { Column } from "../components/Column";
 
 // ===========================================================================
@@ -22,9 +20,7 @@ import { Column } from "../components/Column";
 export const route = {
   preload: () => {
     void getMe();
-    void getActionItems();
-    void getWentWell();
-    void getDidntGoWell();
+    void getCards();
   },
 } satisfies RouteDefinition;
 
@@ -32,9 +28,16 @@ export default function Board() {
   // A server function read. `getMe` is a query(): cached per key, revalidated
   // by the router after an action settles. It mints a nickname on first visit.
   const me = createMemo(() => getMe());
-  const actionItems = createMemo(() => getActionItems());
-  const wentWell = createMemo(() => getWentWell());
-  const didntGoWell = createMemo(() => getDidntGoWell());
+  const cards = createMemo(() => getCards());
+  const actionItems = createMemo(() =>
+    cards().filter((card) => card.column === "action-items"),
+  );
+  const wentWell = createMemo(() =>
+    cards().filter((card) => card.column === "went-well"),
+  );
+  const didntGoWell = createMemo(() =>
+    cards().filter((card) => card.column === "didnt-go-well"),
+  );
 
   return (
     <main class="mx-auto max-w-5xl p-6 pb-32">
@@ -61,7 +64,7 @@ export default function Board() {
       </header>
 
       <section class="rounded-xl border border-dashed border-line p-10 text-center">
-        <div class="grid grid-cols-3">
+        <div class="grid grid-cols-3 gap-8">
           <Column type="went-well" cards={wentWell()} />
           <Column type="didnt-go-well" cards={didntGoWell()} />
           <Column type="action-items" cards={actionItems()} />

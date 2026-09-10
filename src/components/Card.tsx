@@ -1,13 +1,13 @@
 import type { Card } from "../server/db";
 
 export function SkeletonCard() {
-  return <div class="animate-pulse h-[100px] w-full rounded-sm"></div>;
+  return <div class="h-20 w-full bg-surface-2 rounded-sm is-pending"></div>;
 }
 
 export default function Card(props: { card: Card }) {
   const { card } = props;
   return (
-    <div>
+    <article class="rounded-lg border border-line bg-surface p-3 text-sm">
       <p style={{ color: `hsl(${card.authorHue}, 70%, 60%)` }}>
         {card.authorName}
       </p>
@@ -15,6 +15,6 @@ export default function Card(props: { card: Card }) {
       <div>
         <button>{card.votes.length}</button>
       </div>
-    </div>
+    </article>
   );
 }
