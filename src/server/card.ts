@@ -73,7 +73,7 @@ export async function editCard(card:EditCardInput) {
     })
     cardsBus.publish(next)
 
-    return card
+    return next
 }
 
 export async function removeCard(id:string) {

@@ -1,8 +1,12 @@
-import { Title } from '@solidjs/meta';
-import type { RouteDefinition } from '@solidjs/router';
-import { createMemo } from 'solid-js';
-
-import { getMe } from '../lib/jam';
+import { Title } from "@solidjs/meta";
+import type { RouteDefinition } from "@solidjs/router";
+import { createMemo } from "solid-js";
+import { addNewCard, getCards } from "../lib/jam";
+import { type Column } from "../server/card";
+import { useAction } from "@solidjs/router";
+import { For } from "solid-js";
+import { getMe } from "../lib/jam";
+import { Card } from "../components/card";
 
 // ===========================================================================
 //  THIS IS YOUR STARTING POINT.
@@ -18,6 +22,7 @@ import { getMe } from '../lib/jam';
 export const route = {
   preload: () => {
     void getMe();
+    void getCards();
   },
 } satisfies RouteDefinition;
 
@@ -25,6 +30,9 @@ export default function RetroBoard() {
   // A server function read. `getMe` is a query(): cached per key, revalidated
   // by the router after an action settles. It mints a nickname on first visit.
   const me = createMemo(() => getMe());
+  const cards = createMemo(() => getCards());
+
+  const addNewCardSubmit = useAction(addNewCard);
 
   return (
     <main class="mx-auto max-w-5xl p-6 pb-32">
@@ -40,7 +48,7 @@ export default function RetroBoard() {
 
         <div
           class="flex items-center gap-2 rounded-full border border-line bg-surface-2 px-3 py-1.5 text-sm"
-          style={{ '--who': `hsl(${me().hue} 70% 60%)` }}
+          style={{ "--who": `hsl(${me().hue} 70% 60%)` }}
         >
           <span
             class="inline-block size-2.5 rounded-full"
@@ -50,21 +58,40 @@ export default function RetroBoard() {
         </div>
       </header>
 
-      <div class='grid md:grid-cols-3 gap-4'>
+      <div class="grid md:grid-cols-3 gap-4">
         <section class="flex flex-col gap-3 rounded-xl border border-line bg-surface-2 p-4">
-          <h2 class="text-sm font-semibold tracking-wide text-muted uppercase">Went Well</h2>
-          <article class="rounded-lg border border-line bg-surface p-3 text-sm">
-          </article>
+          <form
+            method="post"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const fd = new FormData(e.currentTarget);
+              addNewCardSubmit({
+                text: fd.get("text") as string,
+                column: "Went Well" as Column,
+              });
+            }}
+          >
+            <input name="text" type="text" placeholder="Add Card Text" />
+            <button type="submit">Add</button>
+          </form>
+          <h2 class="text-sm font-semibold tracking-wide text-muted uppercase">
+            Went Well
+          </h2>
+          <For each={cards()} fallback={<div>Loading...</div>}>
+            {(card) => <Card {...card} />}
+          </For>
         </section>
         <section class="flex flex-col gap-3 rounded-xl border border-line bg-surface-2 p-4">
-          <h2 class="text-sm font-semibold tracking-wide text-muted uppercase">Didn't Go Well</h2>
-          <article class="rounded-lg border border-line bg-surface p-3 text-sm">
-          </article>
+          <h2 class="text-sm font-semibold tracking-wide text-muted uppercase">
+            Didn't Go Well
+          </h2>
+          <article class="rounded-lg border border-line bg-surface p-3 text-sm"></article>
         </section>
         <section class="flex flex-col gap-3 rounded-xl border border-line bg-surface-2 p-4">
-          <h2 class="text-sm font-semibold tracking-wide text-muted uppercase">Action Items</h2>
-          <article class="rounded-lg border border-line bg-surface p-3 text-sm">
-          </article>
+          <h2 class="text-sm font-semibold tracking-wide text-muted uppercase">
+            Action Items
+          </h2>
+          <article class="rounded-lg border border-line bg-surface p-3 text-sm"></article>
         </section>
       </div>
     </main>

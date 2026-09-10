@@ -6,22 +6,35 @@
 // in the browser the compiler rewrites each into a typed fetch. The
 // `../server/*` modules they import are `server-only` and never reach the
 // client bundle.
-import { action, liveQuery, query } from '@solidjs/router';
-import { getRequestEvent } from '@solidjs/web';
+import { action, liveQuery, query } from "@solidjs/router";
+import { getRequestEvent } from "@solidjs/web";
 
-import { chaosBus, getChaos, setChaos, type ChaosSettings } from '../server/chaos';
-import { getIdentity } from '../server/identity';
-import { isLiveConnection } from '../server/live';
-import { readCards, addNewCard as _addNewCard, editCard as _editCard, removeCard as _removeCard, subscribeToCards, type AddNewCardInput } from '../server/card';
+import {
+  chaosBus,
+  getChaos,
+  setChaos,
+  type ChaosSettings,
+} from "../server/chaos";
+import { getIdentity } from "../server/identity";
+import { isLiveConnection } from "../server/live";
+import {
+  readCards,
+  addNewCard as _addNewCard,
+  editCard as _editCard,
+  removeCard as _removeCard,
+  subscribeToCards,
+  type AddNewCardInput,
+  type EditCardInput,
+} from "../server/card";
 
 /**
  * Who am I? Minted on first contact, then stable for this browser.
  * `query` caches per key and the router revalidates it after actions settle.
  */
 export const getMe = query(async () => {
-  'use server';
+  "use server";
   return getIdentity();
-}, 'me');
+}, "me");
 
 /**
  * The chaos settings, as a LIVE read — change them in one window and every
@@ -39,7 +52,7 @@ export const getMe = query(async () => {
  *     released. Skip this and every reconnect leaks a listener.
  */
 export const liveChaos = liveQuery(async function* () {
-  'use server';
+  "use server";
   // SSR: hand back the first value without subscribing (see src/server/live.ts).
   if (!isLiveConnection()) {
     yield getChaos();
@@ -49,37 +62,45 @@ export const liveChaos = liveQuery(async function* () {
   for await (const settings of chaosBus.subscribe(signal)) {
     yield settings;
   }
-}, 'chaos');
+}, "chaos");
 
 /** Non-live read, for code that just wants the current numbers once. */
 export const getChaosSettings = query(async () => {
-  'use server';
+  "use server";
   return getChaos();
-}, 'chaos-snapshot');
+}, "chaos-snapshot");
 
 /** Move a knob. Broadcasts to every open window through the bus. */
 export const updateChaos = action(async (next: Partial<ChaosSettings>) => {
-  'use server';
+  "use server";
   return setChaos(next);
-}, 'update-chaos');
+}, "update-chaos");
 
 export const getCards = liveQuery(async function* () {
-  'use server';
+  "use server";
   if (!isLiveConnection()) {
     yield readCards();
     return;
   }
   const signal = getRequestEvent()?.request.signal;
   for await (const cards of subscribeToCards(signal)) {
-    yield cards
+    yield cards;
   }
-}, 'get-cards');
+}, "get-cards");
 
 export const addNewCard = action(async (card: AddNewCardInput) => {
+  "use server";
+  return _addNewCard(card);
+}, "add-new-card");
+
+export const removeCard = action(async (id: string) => {
+  "use server";
+  return _removeCard(id);
+}, "remove-card");
+
+export const editCard = action(async (card: EditCardInput) => {
   'use server';
-  return _addNewCard(card)
-}, 'add-new-card');
-
-
+  return _editCard(card);
+}, "edit-card");
 
 export type { ChaosSettings };
