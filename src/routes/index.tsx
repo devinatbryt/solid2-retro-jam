@@ -1,10 +1,8 @@
 import { Title } from "@solidjs/meta";
 import type { RouteDefinition } from "@solidjs/router";
-import { createMemo } from "solid-js";
+import { createMemo, For, Loading } from "solid-js";
 import { addNewCard, getCards } from "../lib/jam";
-import { type Column } from "../server/card";
 import { useAction } from "@solidjs/router";
-import { For } from "solid-js";
 import { getMe } from "../lib/jam";
 import { Card } from "../components/card";
 
@@ -30,7 +28,7 @@ export default function RetroBoard() {
   // A server function read. `getMe` is a query(): cached per key, revalidated
   // by the router after an action settles. It mints a nickname on first visit.
   const me = createMemo(() => getMe());
-  const cards = createMemo(() => getCards());
+  const cards = createMemo(getCards);
 
   const addNewCardSubmit = useAction(addNewCard);
 
@@ -67,7 +65,7 @@ export default function RetroBoard() {
               const fd = new FormData(e.currentTarget);
               addNewCardSubmit({
                 text: fd.get("text") as string,
-                column: "Went Well" as Column,
+                column: "went-well",
               });
             }}
           >
@@ -77,9 +75,9 @@ export default function RetroBoard() {
           <h2 class="text-sm font-semibold tracking-wide text-muted uppercase">
             Went Well
           </h2>
-          <For each={cards()} fallback={<div>Loading...</div>}>
-            {(card) => <Card {...card} />}
-          </For>
+          <Loading fallback={<div>Loading...</div>}>
+            <For each={cards()}>{(card) => <Card card={card} />}</For>
+          </Loading>
         </section>
         <section class="flex flex-col gap-3 rounded-xl border border-line bg-surface-2 p-4">
           <h2 class="text-sm font-semibold tracking-wide text-muted uppercase">

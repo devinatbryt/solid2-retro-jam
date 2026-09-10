@@ -11,6 +11,7 @@ import { getRequestEvent } from "@solidjs/web";
 
 import {
   chaosBus,
+  chaosRead,
   getChaos,
   setChaos,
   type ChaosSettings,
@@ -84,6 +85,7 @@ export const getCards = liveQuery(async function* () {
   }
   const signal = getRequestEvent()?.request.signal;
   for await (const cards of subscribeToCards(signal)) {
+    await chaosRead();
     yield cards;
   }
 }, "get-cards");
@@ -99,7 +101,7 @@ export const removeCard = action(async (id: string) => {
 }, "remove-card");
 
 export const editCard = action(async (card: EditCardInput) => {
-  'use server';
+  "use server";
   return _editCard(card);
 }, "edit-card");
 
