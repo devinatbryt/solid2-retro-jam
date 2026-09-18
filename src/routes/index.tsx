@@ -1,10 +1,9 @@
 import { Title } from "@solidjs/meta";
 import type { RouteDefinition } from "@solidjs/router";
-import { createMemo, For, Loading } from "solid-js";
-import { addNewCard, getCards } from "../lib/jam";
-import { useAction } from "@solidjs/router";
+import { createMemo } from "solid-js";
+import { getCards } from "../lib/jam";
 import { getMe } from "../lib/jam";
-import { Card } from "../components/card";
+import Column from "../components/column";
 
 // ===========================================================================
 //  THIS IS YOUR STARTING POINT.
@@ -29,8 +28,17 @@ export default function RetroBoard() {
   // by the router after an action settles. It mints a nickname on first visit.
   const me = createMemo(() => getMe());
   const cards = createMemo(getCards);
+  const wentWell = createMemo(() =>
+    cards().filter((card) => card.column === "went-well"),
+  );
 
-  const addNewCardSubmit = useAction(addNewCard);
+  const didntGoWell = createMemo(() =>
+    cards().filter((card) => card.column === "didnt-go-well"),
+  );
+
+  const actionItems = createMemo(() =>
+    cards().filter((card) => card.column === "action-items"),
+  );
 
   return (
     <main class="mx-auto max-w-5xl p-6 pb-32">
@@ -57,40 +65,9 @@ export default function RetroBoard() {
       </header>
 
       <div class="grid md:grid-cols-3 gap-4">
-        <section class="flex flex-col gap-3 rounded-xl border border-line bg-surface-2 p-4">
-          <form
-            method="post"
-            onSubmit={(e) => {
-              e.preventDefault();
-              const fd = new FormData(e.currentTarget);
-              addNewCardSubmit({
-                text: fd.get("text") as string,
-                column: "went-well",
-              });
-            }}
-          >
-            <input name="text" type="text" placeholder="Add Card Text" />
-            <button type="submit">Add</button>
-          </form>
-          <h2 class="text-sm font-semibold tracking-wide text-muted uppercase">
-            Went Well
-          </h2>
-          <Loading fallback={<div>Loading...</div>}>
-            <For each={cards()}>{(card) => <Card card={card} />}</For>
-          </Loading>
-        </section>
-        <section class="flex flex-col gap-3 rounded-xl border border-line bg-surface-2 p-4">
-          <h2 class="text-sm font-semibold tracking-wide text-muted uppercase">
-            Didn't Go Well
-          </h2>
-          <article class="rounded-lg border border-line bg-surface p-3 text-sm"></article>
-        </section>
-        <section class="flex flex-col gap-3 rounded-xl border border-line bg-surface-2 p-4">
-          <h2 class="text-sm font-semibold tracking-wide text-muted uppercase">
-            Action Items
-          </h2>
-          <article class="rounded-lg border border-line bg-surface p-3 text-sm"></article>
-        </section>
+        <Column cards={wentWell()} column="went-well" />
+        <Column cards={didntGoWell()} column="didnt-go-well" />
+        <Column cards={actionItems()} column="action-items" />
       </div>
     </main>
   );
