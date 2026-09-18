@@ -28,7 +28,7 @@ export default function Board() {
   // A server function read. `getMe` is a query(): cached per key, revalidated
   // by the router after an action settles. It mints a nickname on first visit.
   const me = createMemo(() => getMe());
-  const cards = createMemo(() => getCards());
+  const cards = createMemo(getCards);
   const actionItems = createMemo(() =>
     cards().filter((card) => card.column === "action-items"),
   );
@@ -69,27 +69,6 @@ export default function Board() {
           <Column type="didnt-go-well" cards={didntGoWell()} />
           <Column type="action-items" cards={actionItems()} />
         </div>
-        {/* <h2 class="mb-2 font-semibold">Nothing here yet — that is the point.</h2>
-        <p class="mx-auto mb-6 max-w-md text-sm text-muted">
-          Build the board described in <code class="text-white">SPEC.md</code>.
-          Start by deciding what a card is and how the server hands you a list
-          of them; the shape of every primitive you will need is on the
-          playground.
-        </p>
-        <div class="flex flex-wrap justify-center gap-2 text-sm">
-          <a
-            href="/playground"
-            class="rounded-lg bg-accent px-4 py-2 font-semibold text-surface"
-          >
-            Open the playground
-          </a>
-          <a
-            href="/users"
-            class="rounded-lg border border-line px-4 py-2 font-medium text-muted hover:text-white"
-          >
-            Template's own server-function example
-          </a>
-        </div> */}
       </section>
 
       <p class="mt-8 text-center text-xs text-muted">

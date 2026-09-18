@@ -6,10 +6,6 @@ import "server-only";
 import { createBus } from "./bus";
 import { chaosRead, chaosWrite } from "./chaos";
 import { randomUUID } from "node:crypto";
-export interface User {
-  name: string;
-  title: string;
-}
 
 export type Column = "went-well" | "didnt-go-well" | "action-items";
 
@@ -25,143 +21,7 @@ export interface Card {
   updatedAt: number;
 }
 
-export type AddCardInput = Omit<Card, "id" | "votes">;
-
-const users = new Map<string, User>([
-  ["1", { name: "Ada Lovelace", title: "Wrote the first program" }],
-  ["2", { name: "Grace Hopper", title: "Invented the compiler" }],
-  ["3", { name: "Margaret Hamilton", title: "Took Apollo to the moon" }],
-]);
-
-export function listUsers() {
-  return Array.from(users, ([id, user]) => ({ id, ...user }));
-}
-
-export function findUser(id: string) {
-  return users.get(id);
-}
-
-export function updateUser(id: string, data: Partial<User>) {
-  const user = users.get(id);
-  if (user) users.set(id, { ...user, ...data });
-}
-
-// const didntGoWell = new Map<string, Card>([
-//   [
-//     "1",
-//     {
-//       text: "sloppy",
-//       authorId: "1",
-//       authorName: "Ada Lovelace",
-//       authorHue: 200,
-//       votes: [],
-//       createdAt: Date.now(),
-//       updatedAt: Date.now(),
-//     },
-//   ],
-//   [
-//     "2",
-//     {
-//       text: "tdd is no fun",
-//       authorId: "2",
-//       authorName: "Grace Hopper",
-//       authorHue: 100,
-//       votes: [],
-//       createdAt: Date.now(),
-//       updatedAt: Date.now(),
-//     },
-//   ],
-//   [
-//     "3",
-//     {
-//       text: "Improve documentation, just kidding... imperfection.",
-//       authorId: "3",
-//       authorName: "Margaret Hamilton",
-//       authorHue: 300,
-//       votes: [],
-//       createdAt: Date.now(),
-//       updatedAt: Date.now(),
-//     },
-//   ],
-// ]);
-
-// const wentWell = new Map<string, Card>([
-//   [
-//     "1",
-//     {
-//       text: "the codebase wins",
-//       authorId: "1",
-//       authorName: "Ada Lovelace",
-//       authorHue: 200,
-//       votes: [],
-//       createdAt: Date.now(),
-//       updatedAt: Date.now(),
-//     },
-//   ],
-//   [
-//     "2",
-//     {
-//       text: "Add unit tests never. all good!",
-//       authorId: "2",
-//       authorName: "Grace Hopper",
-//       authorHue: 100,
-//       votes: [],
-//       createdAt: Date.now(),
-//       updatedAt: Date.now(),
-//     },
-//   ],
-//   [
-//     "3",
-//     {
-//       text: "Improve documentation, just kidding... perfection.",
-//       authorId: "3",
-//       authorName: "Margaret Hamilton",
-//       authorHue: 300,
-//       votes: [],
-//       createdAt: Date.now(),
-//       updatedAt: Date.now(),
-//     },
-//   ],
-// ]);
-
-// const actionItems = new Map<string, Card>([
-//   [
-//     "1",
-//     {
-//       text: "Refactor the codebase",
-//       authorId: "1",
-//       authorName: "Ada Lovelace",
-//       authorHue: 200,
-//       votes: [],
-//       createdAt: Date.now(),
-//       updatedAt: Date.now(),
-//     },
-//   ],
-//   [
-//     "2",
-//     {
-//       text: "Add unit tests",
-//       authorId: "2",
-//       authorName: "Grace Hopper",
-//       authorHue: 100,
-//       votes: [],
-//       createdAt: Date.now(),
-//       updatedAt: Date.now(),
-//     },
-//   ],
-//   [
-//     "3",
-//     {
-//       text: "Improve documentation",
-//       authorId: "3",
-//       authorName: "Margaret Hamilton",
-//       authorHue: 300,
-//       votes: [],
-//       createdAt: Date.now(),
-//       updatedAt: Date.now(),
-//     },
-//   ],
-// ]);
+export type AddCardInput = Pick<Card, "column" | "text">;
 
 const cardsBus = createBus<Card[]>([]);
 
@@ -182,43 +42,42 @@ export async function readCards() {
   return cardsBus.current();
 }
 
-export async function addNewCard(card: AddCardInput) {
+export async function addNewCard(card: Omit<Card, "id" | "updatedAt" | "createdAt">) {
   await chaosWrite(`card added by ${card.authorName}`);
   const latestCards = currentCards();
+  const date = Date.now();
   const newCards = [
     ...latestCards,
     {
       ...card,
       id: randomUUID(),
-      votes: [],
+      createdAt: date,
+      updatedAt: date,
     },
   ];
   cardsBus.publish(newCards);
   return newCards;
 }
 
-// export function listActionItems() {
-//   return Array.from(actionItems, ([id, card]) => ({ id, ...card }));
-// }
-
-// export function listWentWell() {
-//   return Array.from(wentWell, ([id, card]) => ({ id, ...card }));
-// }
-
-// export function listDidntGoWell() {
-//   return Array.from(didntGoWell, ([id, card]) => ({ id, ...card }));
-// }
-
-// { id: authorId, name: authorName, hue: authorHue, text, votes: [] } how it is
-// { authorId: id, authorName: name, authorHue: hue, text, votes: [] } how it must be
-// type Data = {
-//   text: string;
-//   id: string;
-//   name: string;
-//   hue: number;
-//   votes: string[];
-// };
-
-// export function postActionItem(data: Data) {
-//   const id = (actionItems.size + 1).toString();
-// }
+export async function updateCardVotes(cardId: Card["id"], authorId: Card["authorId"]) {
+  await chaosWrite(`vote incoming`);
+  const latestCards = currentCards();
+  const date = Date.now();
+  const newCards = latestCards.map((card) => {
+    if (card.id !== cardId) return card;
+    if (card.votes.includes(authorId)) {
+      return {
+        ...card,
+        votes: card.votes.filter((id) => authorId !== id),
+        updatedAt: date
+      }
+    }
+    return ({
+      ...card,
+      votes: [...card.votes, authorId],
+      updatedAt: date
+    })
+  });
+  cardsBus.publish(newCards);
+  return newCards.find((card) => card.id === cardId);
+}

@@ -1,62 +1,50 @@
 import {
   For,
   Loading,
-  createMemo,
   createSignal,
+  createStore,
   Show,
-  Errored,
 } from "solid-js";
 import { SkeletonCard } from "./Card";
-import { getMe } from "../lib/jam";
-import { addCard, getCards } from "../lib/cards";
+import { addCard } from "../lib/cards";
 
 import type { Card, Column } from "../server/db";
 import CardComp from "./Card";
-import { useAction, revalidate } from "@solidjs/router";
+import { useAction } from "@solidjs/router";
 
-function Form(props: { type: Column }) {
-  const me = createMemo(() => getMe());
+function NewCardForm(props: { type: Column }) {
   const submit = useAction(addCard);
   const [error, setError] = createSignal<string | null>(null);
+  const [text, setText] = createStore<{ value: string, isPending: boolean }>({ value: "", isPending: false });
   return (
     <form
       onSubmit={async (e) => {
         e.preventDefault();
-        const target = e.target as HTMLFormElement;
-        const formData = new FormData(target);
         try {
+          setText((previous) => { previous.isPending = true })
           await submit({
-            text: formData.get("text") as string,
-            column: formData.get("column") as Column,
-            authorId: formData.get("authorId") as string,
-            authorHue: Number(formData.get("authorHue")),
-            authorName: formData.get("authorName") as string,
-            createdAt: Date.now(),
-            updatedAt: Date.now(),
+            text: text.value,
+            column: props.type,
           });
-          revalidate(getCards.key);
+          setText((previous) => ({ ...previous, value: "", isPending: false }));
           setError(null);
         } catch (e) {
           if (e instanceof Error) {
             setError(e.message);
-          }
-        } finally {
-          const textInput = Array.from(target.elements).find(
-            (element) => element.getAttribute("name") === "text",
-          ) as HTMLInputElement | null;
-          if (textInput) {
-            textInput.value = "";
-            queueMicrotask(() => {
-              textInput.focus();
-            });
+            setText((previous) => { previous.isPending = false })
           }
         }
       }}
       method="post"
     >
       <input
-        class="w-full rounded-lg border border-line bg-surface px-3 py-2"
+        class={["w-full rounded-lg border border-line bg-surface px-3 py-2", {
+          "is-pending": text.isPending
+        }]}
+        disabled={text.isPending}
         type="text"
+        value={text.value}
+        onInput={(e) => setText((previous) => { previous.value = e.target.value })}
         name="text"
       />
       <Show when={error()}>
@@ -64,10 +52,6 @@ function Form(props: { type: Column }) {
           {error()}
         </p>
       </Show>
-      <input type="hidden" name="column" value={props.type} />
-      <input type="hidden" name="authorId" value={me().id} />
-      <input type="hidden" name="authorHue" value={me().hue} />
-      <input type="hidden" name="authorName" value={me().name} />
     </form>
   );
 }
@@ -81,7 +65,7 @@ export function Column(props: { type: Column; cards: Card[] }) {
           {(card) => <CardComp card={card} />}
         </For>
       </Loading>
-      <Form type={props.type} />
+      <NewCardForm type={props.type} />
     </div>
   );
 }

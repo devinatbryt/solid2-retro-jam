@@ -3,8 +3,8 @@ import {
   readCards,
   addNewCard,
   type AddCardInput,
-  currentCards,
   subscribeCards,
+  updateCardVotes
 } from "../server/db";
 import { getRequestEvent } from "@solidjs/web";
 
@@ -29,5 +29,19 @@ export const getCards = liveQuery(async function* () {
 export const addCard = action(async (next: AddCardInput) => {
   "use server";
   if (next.text.trim() === "") throw new Error("Text input is empty");
-  return addNewCard(next);
+  const identity = await getIdentity();
+  return addNewCard({
+    ...next,
+    votes: [],
+    authorName: identity.name,
+    authorHue: identity.hue,
+    authorId: identity.id,
+  });
 }, "add-card");
+
+export const updateCardVote = action(async (cardId: string) => {
+  "use server";
+  if (!cardId) throw new Error("Card id is required!");
+  const {id: authorId} = await getIdentity();
+  return updateCardVotes(cardId, authorId)
+}, "update-card-vote")
