@@ -2,13 +2,16 @@ import type { Card as CardType } from "../server/card";
 import { useAction } from "@solidjs/router";
 import { createSignal, Show } from "solid-js";
 import { removeCard, editCard } from "../lib/jam";
+import type { Setter } from "solid-js";
 
-export function Card(props: { card: CardType }) {
+export function Card(props: {
+  card: CardType;
+  setFormError: Setter<string | null>;
+}) {
   const deleteCard = useAction(removeCard);
   const editCardAction = useAction(editCard);
 
   const [editMode, setEditMode] = createSignal(false);
-  const [formError, setFormError] = createSignal<string | null>(null);
 
   return (
     <div class="rounded-lg border border-line bg-surface p-3 text-sm">
@@ -42,10 +45,10 @@ export function Card(props: { card: CardType }) {
                   text: fd.get("text") as string,
                   id: props.card.id,
                 });
-                setFormError(null);
+                props.setFormError(null);
               } catch (error) {
                 if (error instanceof Error) {
-                  setFormError(error.message);
+                  props.setFormError(error.message);
                 }
               }
             }}
@@ -54,7 +57,6 @@ export function Card(props: { card: CardType }) {
               type="text"
               name="text"
               // TODO: Add form input focus when the edit mode is enabled
-
               value={props.card.text}
               class="w-full rounded-lg border border-line bg-surface px-3 py-2"
             />
@@ -69,7 +71,16 @@ export function Card(props: { card: CardType }) {
         </Show>
 
         <button
-          onClick={() => deleteCard(props.card.id)}
+          onClick={async (e) => {
+            e.preventDefault();
+            try {
+              await deleteCard(props.card.id);
+            } catch (error) {
+              if (error instanceof Error) {
+                props.setFormError(error.message);
+              }
+            }
+          }}
           class="rounded-lg border border-line px-3 py-1.5 text-sm text-muted hover:text-white"
         >
           Delete

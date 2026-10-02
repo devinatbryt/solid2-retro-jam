@@ -40,7 +40,6 @@ export default function Column(props: {
               (element) => element.getAttribute("name") === "text",
             ) as HTMLInputElement | null;
             if (textInput) {
-              textInput.value = "";
               queueMicrotask(() => {
                 textInput.focus();
               });
@@ -74,7 +73,7 @@ export default function Column(props: {
       </h2>
       <Loading fallback={<div>Loading...</div>}>
         <For fallback={<div>No cards currently</div>} each={props.cards}>
-          {(card) => <Card card={card} />}
+          {(card) => <Card card={card} setFormError={setFormError} />}
         </For>
       </Loading>
     </section>
