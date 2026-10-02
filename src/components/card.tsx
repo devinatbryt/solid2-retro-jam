@@ -1,7 +1,14 @@
 import type { Card as CardType } from "../server/card";
 import { useAction } from "@solidjs/router";
-import { createSignal, Show } from "solid-js";
-import { removeCard, editCard, voteCard } from "../lib/jam";
+import {
+  createSignal,
+  Show,
+  createOptimisticStore,
+  refresh,
+  action,
+  createMemo,
+} from "solid-js";
+import { removeCard, editCard, voteCard, getMe } from "../lib/jam";
 import type { Setter } from "solid-js";
 
 export function Card(props: {
@@ -11,6 +18,12 @@ export function Card(props: {
   const deleteCard = useAction(removeCard);
   const editCardAction = useAction(editCard);
   const voteCardAction = useAction(voteCard);
+  const [votes, setVotes] = createOptimisticStore<string[]>(
+    () => props.card.votes,
+    props.card.votes,
+  );
+
+  const me = createMemo(() => getMe());
 
   const [editMode, setEditMode] = createSignal(false);
 
@@ -25,18 +38,31 @@ export function Card(props: {
       <hr class="border border-line w-full my-2" />
       <p class="mb-4">{props.card.text}</p>
       <button
-        onClick={async () => {
+        onClick={action(async function* () {
+          if (!votes.includes(me().id)) {
+            setVotes((prev) => {
+              prev.push(me().id);
+            });
+          } else {
+            setVotes((prev) => {
+              return prev.filter((id) => id !== me().id);
+            });
+          }
+
           try {
-            await voteCardAction(props.card);
+            const updated = yield await voteCardAction(props.card);
+            setVotes(() => updated.votes);
           } catch (err) {
             if (err instanceof Error) {
               props.setFormError(err.message);
             }
           }
-        }}
+
+          refresh(votes);
+        })}
         class="rounded-lg border border-line px-3 py-1.5 text-sm text-muted hover:text-white"
       >
-        {props.card.votes.length}
+        {votes.length}
       </button>
       <div class="flex items-center gap-2">
         <Show

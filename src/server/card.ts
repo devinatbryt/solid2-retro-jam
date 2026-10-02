@@ -21,8 +21,9 @@ export interface Card {
 
 export async function vote(card: EditCardInput) {
   await chaosWrite("Adding Vote to Card");
-  const me = await getMe();
+  const me = await getIdentity();
   const prev = getCurrentCards();
+  let updatedCard: Card | undefined;
   const next = [...prev].map((c) => {
     if (c.id === card.id) {
       const hasVoted = c.votes.includes(me.id);
@@ -32,16 +33,13 @@ export async function vote(card: EditCardInput) {
       } else {
         updatedVote = [...c.votes, me.id];
       }
-      return {
-        ...c,
-        ...card,
-        votes: updatedVote,
-        updatedAt: new Date().getTime(),
-      };
+      updatedCard = { ...c, votes: updatedVote, updatedAt: Date.now() };
+      return updatedCard;
     }
     return { ...c };
   });
   cardsBus.publish(next);
+  return updatedCard;
 }
 
 const cardsBus = createBus<Card[]>([]);
