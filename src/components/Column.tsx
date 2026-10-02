@@ -1,50 +1,44 @@
-import {
-  For,
-  Loading,
-  createSignal,
-  createStore,
-  Show,
-} from "solid-js";
+import { For, Loading, createSignal, createStore, Show } from "solid-js";
 import { SkeletonCard } from "./Card";
 import { addCard } from "../lib/cards";
-
+import { createOptimisticCards, useOptimisticCards } from "../lib/hooks";
 import type { Card, Column } from "../server/db";
 import CardComp from "./Card";
 import { useAction } from "@solidjs/router";
 
 function NewCardForm(props: { type: Column }) {
-  const submit = useAction(addCard);
+  const [_, { add: submit }] = useOptimisticCards();
   const [error, setError] = createSignal<string | null>(null);
-  const [text, setText] = createStore<{ value: string, isPending: boolean }>({ value: "", isPending: false });
+  const [text, setText] = createStore<{ value: string; isPending: boolean }>({
+    value: "",
+    isPending: false,
+  });
   return (
     <form
       onSubmit={async (e) => {
         e.preventDefault();
-        try {
-          setText((previous) => { previous.isPending = true })
-          await submit({
-            text: text.value,
-            column: props.type,
-          });
-          setText((previous) => ({ ...previous, value: "", isPending: false }));
-          setError(null);
-        } catch (e) {
-          if (e instanceof Error) {
-            setError(e.message);
-            setText((previous) => { previous.isPending = false })
-          }
-        }
+        await submit({
+          text: text.value,
+          column: props.type,
+        });
       }}
       method="post"
     >
       <input
-        class={["w-full rounded-lg border border-line bg-surface px-3 py-2", {
-          "is-pending": text.isPending
-        }]}
+        class={[
+          "w-full rounded-lg border border-line bg-surface px-3 py-2",
+          {
+            "is-pending": text.isPending,
+          },
+        ]}
         disabled={text.isPending}
         type="text"
         value={text.value}
-        onInput={(e) => setText((previous) => { previous.value = e.target.value })}
+        onInput={(e) =>
+          setText((previous) => {
+            previous.value = e.target.value;
+          })
+        }
         name="text"
       />
       <Show when={error()}>
