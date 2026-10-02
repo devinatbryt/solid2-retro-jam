@@ -18,6 +18,8 @@ export function Card(props: {
   const deleteCard = useAction(removeCard);
   const editCardAction = useAction(editCard);
   const voteCardAction = useAction(voteCard);
+
+  // TODO: Fix optimistic store
   const [votes, setVotes] = createOptimisticStore<string[]>(
     () => props.card.votes,
     props.card.votes,

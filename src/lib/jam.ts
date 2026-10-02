@@ -86,7 +86,7 @@ export const getCards = liveQuery(async function* () {
   }
   const signal = getRequestEvent()?.request.signal;
   for await (const cards of subscribeToCards(signal)) {
-    await chaosRead();
+    // await chaosRead();
     yield cards;
   }
 }, "get-cards");
