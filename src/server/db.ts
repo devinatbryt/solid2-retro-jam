@@ -42,7 +42,9 @@ export async function readCards() {
   return cardsBus.current();
 }
 
-export async function addNewCard(card: Omit<Card, "id" | "updatedAt" | "createdAt">) {
+export async function addNewCard(
+  card: Omit<Card, "id" | "updatedAt" | "createdAt">,
+) {
   await chaosWrite(`card added by ${card.authorName}`);
   const latestCards = currentCards();
   const date = Date.now();
@@ -56,10 +58,14 @@ export async function addNewCard(card: Omit<Card, "id" | "updatedAt" | "createdA
     },
   ];
   cardsBus.publish(newCards);
+  console.log(newCards);
   return newCards;
 }
 
-export async function updateCardVotes(cardId: Card["id"], authorId: Card["authorId"]) {
+export async function updateCardVotes(
+  cardId: Card["id"],
+  authorId: Card["authorId"],
+) {
   await chaosWrite(`vote incoming`);
   const latestCards = currentCards();
   const date = Date.now();
@@ -69,14 +75,14 @@ export async function updateCardVotes(cardId: Card["id"], authorId: Card["author
       return {
         ...card,
         votes: card.votes.filter((id) => authorId !== id),
-        updatedAt: date
-      }
+        updatedAt: date,
+      };
     }
-    return ({
+    return {
       ...card,
       votes: [...card.votes, authorId],
-      updatedAt: date
-    })
+      updatedAt: date,
+    };
   });
   cardsBus.publish(newCards);
   return newCards.find((card) => card.id === cardId);

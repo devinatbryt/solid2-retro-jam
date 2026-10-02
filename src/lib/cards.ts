@@ -4,7 +4,7 @@ import {
   addNewCard,
   type AddCardInput,
   subscribeCards,
-  updateCardVotes
+  updateCardVotes,
 } from "../server/db";
 import { getRequestEvent } from "@solidjs/web";
 
@@ -21,7 +21,6 @@ export const getCards = liveQuery(async function* () {
   }
   const signal = getRequestEvent()?.request.signal;
   for await (const cards of subscribeCards(signal)) {
-    await chaosRead();
     yield cards;
   }
 }, "get-cards");
@@ -42,6 +41,6 @@ export const addCard = action(async (next: AddCardInput) => {
 export const updateCardVote = action(async (cardId: string) => {
   "use server";
   if (!cardId) throw new Error("Card id is required!");
-  const {id: authorId} = await getIdentity();
-  return updateCardVotes(cardId, authorId)
-}, "update-card-vote")
+  const { id: authorId } = await getIdentity();
+  return updateCardVotes(cardId, authorId);
+}, "update-card-vote");

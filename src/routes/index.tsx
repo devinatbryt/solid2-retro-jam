@@ -5,7 +5,7 @@ import { createMemo } from "solid-js";
 import { getMe } from "../lib/jam";
 import { getCards } from "../lib/cards";
 import { Column } from "../components/Column";
-import { createOptimisticCards, OptimisticCardsProvider, useOptimisticCards } from "../lib/hooks";
+import {  OptimisticCardsProvider, useOptimisticCards } from "../lib/hooks";
 
 // ===========================================================================
 //  THIS IS YOUR STARTING POINT.

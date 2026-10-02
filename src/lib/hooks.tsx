@@ -4,18 +4,21 @@ import {
   createMemo,
   refresh,
   createContext,
-  Store,
   useContext,
-  Refreshable,
+  type Refreshable,
+  createEffect,
+  onSettled,
+  untrack,
 } from "solid-js";
-import { addCard, getCards } from "./cards";
-import { AddCardInput, Card } from "../server/db";
+import { addCard, getCards, updateCardVote } from "./cards";
+import  type {AddCardInput, Card } from "../server/db";
 import { getMe } from "./jam";
-import { useAction } from "@solidjs/router";
-import { JSX } from "@solidjs/web/jsx-runtime";
+import { revalidate, useAction } from "@solidjs/router";
+import type { JSX } from "@solidjs/web/jsx-runtime";
 
 interface OptimisticCardActions {
   add: (card: AddCardInput) => Promise<void>;
+  updateVote: (id: string) => Promise<void>;
 }
 type OptimisticCardsCtx = readonly [
   Refreshable<readonly Card[]>,
@@ -24,18 +27,24 @@ type OptimisticCardsCtx = readonly [
 
 const OptimisticCardContext = createContext<OptimisticCardsCtx>();
 
-export const createOptimisticCards = () => {
+const createOptimisticCards = () => {
+  onSettled(() => {
+    revalidate(getCards.key);
+  });
   const identity = createMemo(() => getMe());
-  const [cards, setCards] = createOptimisticStore(() => getCards(), []);
+  const liveCards = createMemo(getCards)
+  const [cards, setCards] = createOptimisticStore<Card[]>(() => liveCards(), []);
   const addCardAction = useAction(addCard);
+  const updateCardVotesAction = useAction(updateCardVote)
 
-  const add = action(function* (card: AddCardInput) {
+  const add = action(async function* (card: AddCardInput) {
+    const me = untrack(identity)
     setCards((cardList) => {
       cardList.push({
         ...card,
-        authorId: identity().id,
-        authorHue: identity().hue,
-        authorName: identity().name,
+        authorId: me.id,
+        authorHue: me.hue,
+        authorName: me.name,
         createdAt: Date.now(),
         updatedAt: Date.now(),
         votes: [],
@@ -43,10 +52,29 @@ export const createOptimisticCards = () => {
       });
     });
     yield addCardAction(card);
-    refresh(cards);
+    refresh(cards)
   });
 
-  return [cards, { add }] as OptimisticCardsCtx;
+  const updateVote = action(async function* (cardId: string) {
+    const me = untrack(identity)
+    setCards(cardList => {
+      for (const card of cardList) {
+        if (card.id !== cardId) continue;
+        const authorIndex = card.votes.indexOf(me.id);
+        card.updatedAt = Date.now()
+        if (authorIndex >= 0) {
+          card.votes.splice(authorIndex)
+          break;
+        }
+        card.votes.push(me.id)
+        break;
+      }
+    });
+    yield updateCardVotesAction(cardId);
+    refresh(cards)
+  })
+
+  return [cards, { add, updateVote }] as OptimisticCardsCtx;
 };
 
 export const useOptimisticCards = () => {

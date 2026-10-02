@@ -1,10 +1,8 @@
 import { For, Loading, createSignal, createStore, Show } from "solid-js";
 import { SkeletonCard } from "./Card";
-import { addCard } from "../lib/cards";
-import { createOptimisticCards, useOptimisticCards } from "../lib/hooks";
+import { useOptimisticCards } from "../lib/hooks";
 import type { Card, Column } from "../server/db";
 import CardComp from "./Card";
-import { useAction } from "@solidjs/router";
 
 function NewCardForm(props: { type: Column }) {
   const [_, { add: submit }] = useOptimisticCards();
