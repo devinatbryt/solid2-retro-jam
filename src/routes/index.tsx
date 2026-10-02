@@ -5,6 +5,7 @@ import { createMemo } from "solid-js";
 import { getMe } from "../lib/jam";
 import { getCards } from "../lib/cards";
 import { Column } from "../components/Column";
+import { createOptimisticCards, OptimisticCardsProvider, useOptimisticCards } from "../lib/hooks";
 
 // ===========================================================================
 //  THIS IS YOUR STARTING POINT.
@@ -24,19 +25,19 @@ export const route = {
   },
 } satisfies RouteDefinition;
 
-export default function Board() {
+function Board() {
   // A server function read. `getMe` is a query(): cached per key, revalidated
   // by the router after an action settles. It mints a nickname on first visit.
   const me = createMemo(() => getMe());
-  const cards = createMemo(getCards);
+  const [cards] = useOptimisticCards();
   const actionItems = createMemo(() =>
-    cards().filter((card) => card.column === "action-items"),
+    cards.filter((card) => card.column === "action-items"),
   );
   const wentWell = createMemo(() =>
-    cards().filter((card) => card.column === "went-well"),
+    cards.filter((card) => card.column === "went-well"),
   );
   const didntGoWell = createMemo(() =>
-    cards().filter((card) => card.column === "didnt-go-well"),
+    cards.filter((card) => card.column === "didnt-go-well"),
   );
 
   return (
@@ -77,4 +78,12 @@ export default function Board() {
       </p>
     </main>
   );
+}
+
+export default function Main() {
+  return (
+    <OptimisticCardsProvider>
+      <Board />
+    </OptimisticCardsProvider>
+  )
 }
