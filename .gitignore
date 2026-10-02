@@ -4,3 +4,7 @@ dist
 .vite
 *.local
 .DS_Store
+
+# Nix/direnv local cache
+.direnv/
+.envrc
