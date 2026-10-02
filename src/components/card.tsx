@@ -1,7 +1,7 @@
 import type { Card as CardType } from "../server/card";
 import { useAction } from "@solidjs/router";
 import { createSignal, Show } from "solid-js";
-import { removeCard, editCard } from "../lib/jam";
+import { removeCard, editCard, voteCard } from "../lib/jam";
 import type { Setter } from "solid-js";
 
 export function Card(props: {
@@ -10,6 +10,7 @@ export function Card(props: {
 }) {
   const deleteCard = useAction(removeCard);
   const editCardAction = useAction(editCard);
+  const voteCardAction = useAction(voteCard);
 
   const [editMode, setEditMode] = createSignal(false);
 
@@ -23,6 +24,20 @@ export function Card(props: {
       </p>
       <hr class="border border-line w-full my-2" />
       <p class="mb-4">{props.card.text}</p>
+      <button
+        onClick={async () => {
+          try {
+            await voteCardAction(props.card);
+          } catch (err) {
+            if (err instanceof Error) {
+              props.setFormError(err.message);
+            }
+          }
+        }}
+        class="rounded-lg border border-line px-3 py-1.5 text-sm text-muted hover:text-white"
+      >
+        {props.card.votes.length}
+      </button>
       <div class="flex items-center gap-2">
         <Show
           when={editMode()}

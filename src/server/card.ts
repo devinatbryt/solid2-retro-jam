@@ -3,6 +3,7 @@ import { createBus } from "./bus";
 import { chaosRead, chaosWrite } from "./chaos";
 import { getIdentity } from "./identity";
 import { randomUUID } from "crypto";
+import { getMe } from "../lib/jam";
 
 export type Column = "went-well" | "didnt-go-well" | "action-items";
 
@@ -16,6 +17,31 @@ export interface Card {
   votes: string[]; // authorIds; one vote per person, toggleable
   createdAt: number;
   updatedAt: number;
+}
+
+export async function vote(card: EditCardInput) {
+  await chaosWrite("Adding Vote to Card");
+  const me = await getMe();
+  const prev = getCurrentCards();
+  const next = [...prev].map((c) => {
+    if (c.id === card.id) {
+      const hasVoted = c.votes.includes(me.id);
+      let updatedVote;
+      if (hasVoted) {
+        updatedVote = c.votes.filter((id) => id !== me.id);
+      } else {
+        updatedVote = [...c.votes, me.id];
+      }
+      return {
+        ...c,
+        ...card,
+        votes: updatedVote,
+        updatedAt: new Date().getTime(),
+      };
+    }
+    return { ...c };
+  });
+  cardsBus.publish(next);
 }
 
 const cardsBus = createBus<Card[]>([]);

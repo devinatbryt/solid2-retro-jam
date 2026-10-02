@@ -24,6 +24,7 @@ import {
   editCard as _editCard,
   removeCard as _removeCard,
   subscribeToCards,
+  vote,
   type AddNewCardInput,
   type EditCardInput,
 } from "../server/card";
@@ -104,5 +105,10 @@ export const editCard = action(async (card: EditCardInput) => {
   "use server";
   return _editCard(card);
 }, "edit-card");
+
+export const voteCard = action(async (card: EditCardInput) => {
+  "use server";
+  return vote(card);
+}, "vote-card");
 
 export type { ChaosSettings };
